@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from "react";
+import { Search, Filter } from "lucide-react";
 
 const FEATURE_LAYER_URL =
   "https://services1.arcgis.com/dEWY7aW7h9zHrSP9/arcgis/rest/services/Development_Projects/FeatureServer/0";
@@ -14,6 +15,21 @@ interface MapProps {
   setLayer: (layer: any) => void;
 }
 
+declare global {
+  interface Window {
+    _projectsLayer: any;
+  }
+}
+
+const typeMapping: Record<number, string> = {
+  1: "Commercial",
+  2: "Industrial",
+  3: "Residential",
+  4: "Airport",
+  5: "Other",
+  6: "Land Division",
+};
+
 const MapViewComponent: React.FC<MapProps> = ({
   setChartData,
   setView,
@@ -22,10 +38,26 @@ const MapViewComponent: React.FC<MapProps> = ({
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapReady, setMapReady] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState<any>(null);
-  const [, setPopupPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
+  const [, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
+
+  const [projectTypes, setProjectTypes] = useState<string[]>([]);
+
+  const applyFilter = (value: string) => {
+    if (!window._projectsLayer) return;
+
+    if (value === "ALL") {
+      window._projectsLayer.definitionExpression = "1=1";
+    } else {
+      const numValue = Number(
+        Object.keys(typeMapping).find(
+          (key) => typeMapping[parseInt(key)] === value
+        )
+      );
+      if (numValue) {
+        window._projectsLayer.definitionExpression = `Type = ${numValue}`;
+      }
+    }
+  };
 
   useEffect(() => {
     let viewObj: any = null;
@@ -39,55 +71,50 @@ const MapViewComponent: React.FC<MapProps> = ({
 
       const map = new Map({ basemap: "streets-navigation-vector" });
 
-    const projectsLayer = new FeatureLayer({
-  url: FEATURE_LAYER_URL,
-  outFields: ["*"],
-  title: "Development Projects",
-
-  //  Enable clustering
-  featureReduction: {
-    type: "cluster",
-    clusterRadius: "80px",
-    labelingInfo: [
-      {
-        
-        labelPlacement: "center-center",
-      },
-    ],
-  },
-});
-
+      const projectsLayer = new FeatureLayer({
+        url: FEATURE_LAYER_URL,
+        outFields: ["*"],
+        title: "Development Projects",
+        featureReduction: { type: "cluster", clusterRadius: "70px" },
+      });
 
       map.add(projectsLayer);
 
       viewObj = new MapView({
         container: mapRef.current as any,
         map,
-        zoom: 8,
+        zoom: 7,
         center: [49.6, 25.4],
+        popupEnabled: false,
       });
 
       setView(viewObj);
       setLayer(projectsLayer);
+      (window as any)._projectsLayer = projectsLayer;
 
-      // Auto zoom to layer
+      // Auto zoom
       const layerExtent = await projectsLayer.queryExtent();
       if (layerExtent?.extent) {
         try {
           await viewObj.goTo(layerExtent.extent);
-        } catch (err) {
-          console.warn("goTo skipped:", err);
+        } catch {
+          /* empty */
         }
       }
 
-      // Fetch data for charts
+      // Fetch chart data
       const res = await projectsLayer.queryFeatures({
         where: "1=1",
         outFields: ["*"],
         returnGeometry: false,
       });
-
       const features = res.features.map((f: any) => f.attributes);
+
+      // Set project types dynamically
+      const types = Array.from(
+        new Set(features.map((f: any) => typeMapping[f.Type]).filter(Boolean))
+      );
+      setProjectTypes(types);
 
       const population = features.map(
         (f) => f.population || Math.random() * 90000000
@@ -103,26 +130,19 @@ const MapViewComponent: React.FC<MapProps> = ({
         gdp: gdp.slice(0, 5),
       });
 
-      //  Click event for modern overlay card
+      // Click event → open overlay card
       viewObj.when(() => {
         viewObj.on("click", async (event: any) => {
           const hitTestResult = await viewObj.hitTest(event);
+          const graphic = hitTestResult.results.find(
+            (r: any) => r.graphic.layer === projectsLayer
+          )?.graphic;
 
-          if (hitTestResult.results.length > 0) {
-            const graphic = hitTestResult.results.find(
-              (r: any) => r.graphic.layer === projectsLayer
-            )?.graphic;
-
-            if (graphic) {
-              const attr = graphic.attributes;
-              console.log("Feature Attributes:", attr);
-
-              const screenPoint = viewObj.toScreen(event.mapPoint);
-              setPopupPosition({ x: screenPoint.x, y: screenPoint.y });
-              setSelectedFeature(attr);
-            } else {
-              setSelectedFeature(null);
-            }
+          if (graphic) {
+            const attr = graphic.attributes;
+            const screenPoint = viewObj.toScreen(event.mapPoint);
+            setPopupPosition({ x: screenPoint.x, y: screenPoint.y });
+            setSelectedFeature(attr);
           } else {
             setSelectedFeature(null);
           }
@@ -135,71 +155,145 @@ const MapViewComponent: React.FC<MapProps> = ({
     return () => {
       if (viewObj) viewObj.container = null;
     };
-  }, [setChartData, setView, setLayer]);
+  }, []);
+
+  // Search
+
+  const [searchText, setSearchText] = useState("");
+
+  // Watch searchText and apply filter to layer
+  useEffect(() => {
+    if (!window._projectsLayer) return;
+
+    let whereClause = "1=1";
+
+    if (searchText.trim()) {
+      // Escape single quotes
+      const searchEscaped = searchText.replace(/'/g, "''");
+      whereClause += ` AND Name LIKE '%${searchEscaped}%'`;
+    }
+
+    window._projectsLayer.definitionExpression = whereClause;
+  }, [searchText]);
 
   return (
-    <section className="w-full h-full bg-white rounded-lg shadow overflow-hidden relative">
-      <div ref={mapRef} className="w-full h-[50vh] lg:h-[90vh]" />
+    <section className="w-full h-full relative rounded-xl shadow bg-white overflow-hidden">
+      {/* Floating Filter And Search*/}
 
+      <div className="absolute top-4 left-4 z-50 w-40 sm:w-48 md:w-56">
+        <div
+          className="backdrop-blur-xl bg-white/90 border border-gray-200 shadow-2xl 
+                  rounded-2xl px-3 py-3 sm:px-4 sm:py-4 flex flex-col gap-2 sm:gap-3"
+        >
+          {/* عنوان الفلتر */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+            <h4 className="text-xs sm:text-sm font-semibold text-gray-700">
+              Filter by Type
+            </h4>
+          </div>
+
+          {/* Dropdown الفلتر */}
+          <div className="relative">
+            <select
+              className="w-full text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg bg-white/80 
+                   focus:ring-2 focus:ring-blue-500 appearance-none pr-7 sm:pr-8 cursor-pointer"
+              onChange={(e) => applyFilter(e.target.value)}
+            >
+              <option value="ALL">All Types</option>
+              {projectTypes.map((t, i) => (
+                <option key={i} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <span className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs sm:text-base">
+              ▼
+            </span>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search by project name..."
+              className="w-full text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg bg-white/80 
+                   focus:ring-2 focus:ring-blue-500 pl-8 sm:pl-10"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            <Search className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 absolute left-2 sm:left-3 top-1/2 -translate-y-1/2" />
+          </div>
+        </div>
+      </div>
+
+      {/* Map */}
+      <div ref={mapRef} className="w-full h-[60vh] md:h-[80vh] lg:h-[92vh]" />
+
+      {/* Loading Screen */}
       {!mapReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10 text-lg font-semibold">
-         Loading map...
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-white/70 
+                        z-40 text-lg font-semibold"
+        >
+          Loading map...
         </div>
       )}
 
-      {/* Modern Overlay Card */}
-     {selectedFeature && (
-  <div
-    className="absolute z-50 pointer-events-auto bg-white rounded-2xl shadow-2xl border border-gray-200 animate-fadeIn"
-    style={{
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      width: "360px",
-    }}
-  >
-    {/* Close Button */}
-    <button
-      onClick={() => setSelectedFeature(null)}
-      className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-    >
-      ✕
-    </button>
+      {/* Modern Popup */}
+      {selectedFeature && (
+        <div
+          className="absolute z-50 w-[320px] sm:w-[360px] max-w-[90%] 
+                     rounded-2xl overflow-hidden shadow-2xl 
+                     animate-[popupShow_0.25s_ease-out]
+                     backdrop-blur-2xl bg-white/80 border border-white/50"
+          style={{
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <div className="relative bg-[linear-gradient(135deg,#0a2d37,#0a2d37)] text-white px-4 py-3">
+            <h3 className="text-lg font-bold truncate">
+              {selectedFeature.Name || "Project Name"}
+            </h3>
 
-    {/* Header */}
-    <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-5 py-4 border-b border-gray-200 rounded-t-2xl">
-      <h3 className="text-xl font-semibold text-center text-gray-800">
-        {selectedFeature.Name || "Project Name"}
-      </h3>
-    </div>
-
-    {/* Table Layout */}
-    <div className="p-5">
-      <div className="space-y-3">
-        {[
-          ["Project Name", selectedFeature.Name],
-          ["Type", selectedFeature.Type],
-          ["Stage of Development", selectedFeature.Stage],
-          ["Premises", selectedFeature.Class],
-          ["Year", selectedFeature.Year],
-          ["Project Size", selectedFeature.Size],
-          ["Notes", selectedFeature.Notes],
-        ].map(([label, value], idx) => (
-          <div
-            key={idx}
-            className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg shadow-sm"
-          >
-            <span className="font-semibold text-gray-600">{label}</span>
-            <span className="text-gray-800">{value || "-"}</span>
+            <button
+              onClick={() => setSelectedFeature(null)}
+              className="absolute top-2 right-2 bg-white/30 hover:bg-white/40 
+                         transition rounded-full w-8 h-8 flex items-center justify-center"
+            >
+              ✕
+            </button>
           </div>
-        ))}
 
-    
-      </div>
-    </div>
-  </div>
-)}
-
+          <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+            {[
+              [
+                "Type",
+                typeMapping[selectedFeature.Type] || selectedFeature.Type,
+              ],
+              ["Stage", selectedFeature.Stage],
+              ["Premises", selectedFeature.Class],
+              ["Year", selectedFeature.Year],
+              ["Project Size", selectedFeature.Size],
+              ["Notes", selectedFeature.Notes],
+            ].map(([label, value], i) => (
+              <div
+                key={i}
+                className="flex justify-between items-center bg-white/70 
+                           backdrop-blur-md px-3 py-2 rounded-lg border 
+                           border-gray-200 hover:bg-white transition text-sm"
+              >
+                <span className="font-semibold text-gray-600">{label}</span>
+                <span className="text-gray-800 font-medium truncate max-w-[150px] text-right">
+                  {value || "-"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 };
