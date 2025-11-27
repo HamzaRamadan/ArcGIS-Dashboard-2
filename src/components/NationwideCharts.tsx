@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
 import { Bar, Line } from "react-chartjs-2";
 
 import {
@@ -84,7 +83,8 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
 
       <h3 className="font-bold text-gray-700 text-lg mb-4">NATIONWIDE</h3>
 
-      <div className="flex flex-row gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
         {/* POPULATION */}
         <div className="flex-1 p-4 rounded-xl" style={{ background: COLORS.bg }}>
           <p className="text-sm font-semibold mb-2">Average population</p>

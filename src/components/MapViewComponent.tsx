@@ -139,10 +139,11 @@ const MapViewComponent: React.FC<MapProps> = ({
 
   return (
     <section className="w-full h-full bg-white rounded-lg shadow overflow-hidden relative">
-      <div ref={mapRef} className="w-full h-[80vh]" />
+      <div ref={mapRef} className="w-full h-[50vh] lg:h-[90vh]" />
+
       {!mapReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10 text-lg font-semibold">
-          جارٍ تحميل الخريطة...
+         Loading map...
         </div>
       )}
 
