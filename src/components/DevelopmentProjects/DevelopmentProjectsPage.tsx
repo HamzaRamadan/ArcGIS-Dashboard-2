@@ -121,8 +121,8 @@ export default function DevelopmentProjectsPage() {
                 plugins: {
                   legend: {
                     display: true,
-                    position: "top",    // فوق الرسمه
-                    align: "center",    // العناصر جنب بعض
+                    position: "top",    
+                    align: "center",   
                     labels: {
                       boxWidth: 20,
                       boxHeight: 20,
@@ -144,7 +144,7 @@ export default function DevelopmentProjectsPage() {
   plugins: {
     legend: {
       labels: {
-        color: "#fff"  // اللون الأبيض
+        color: "#fff"  
       }
     }
   }
@@ -158,7 +158,7 @@ export default function DevelopmentProjectsPage() {
   plugins: {
     legend: {
       labels: {
-        color: "#fff"  // اللون الأبيض
+        color: "#fff"  
       }
     }
   }

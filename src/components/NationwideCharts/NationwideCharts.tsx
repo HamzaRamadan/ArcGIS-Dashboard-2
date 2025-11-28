@@ -22,7 +22,6 @@ ChartJS.register(
   Legend
 );
 
-// ألوان ahda.gov.sa
 const COLORS = {
   primary: "#0B6E4F",
   accent: "#F2C94C",

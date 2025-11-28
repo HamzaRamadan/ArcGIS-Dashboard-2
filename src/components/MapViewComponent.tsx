@@ -231,7 +231,6 @@ const MapViewComponent: React.FC<MapProps> = ({
       <div ref={mapRef} className="w-full h-[50vh] md:h-[70vh] lg:h-[80vh]" />
 
       {/* Loading Screen */}
-      {/* Sniper Spinner Loading */}
       {!mapReady && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-white/30 backdrop-blur-lg p-6">
           {/* Spinner */}

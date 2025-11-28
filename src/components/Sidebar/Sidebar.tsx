@@ -28,7 +28,7 @@ export default function Sidebar({ activeTab, setActiveTab }: any) {
           w-64 h-screen fixed top-0 left-0 z-40
           transform transition-transform duration-300
           ${activeTab === "sidebar-open" ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0 lg:static   shadow-2xl   z-[9999]
+          lg:translate-x-0 lg:static   shadow-2xl   z-9999
         `}
       >
         {/* Close button (Mobile) */}
@@ -75,10 +75,6 @@ export default function Sidebar({ activeTab, setActiveTab }: any) {
             onClick={() => setActiveTab("projects")}
           />
         
-          {/* <SidebarItem icon={<MonitorCog />} text="Systems" />
-          <SidebarItem icon={<Users />} text="Users" />
-          <SidebarItem icon={<UserCog />} text="Groups" />
-          <SidebarItem icon={<ShieldCheck />} text="Authentication" /> */}
           
         </nav>
       </aside>

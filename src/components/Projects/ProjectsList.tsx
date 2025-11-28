@@ -40,7 +40,7 @@ export default function ProjectsList({ projects, setSelectedProject }: any) {
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
-          setPage(1); // Reset page on search
+          setPage(1); 
         }}
       />
 
