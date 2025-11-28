@@ -22,9 +22,7 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Left side: Logo + Title */}
       <div className="flex items-center gap-3">
         <img src={brandLogo} alt="logo" className="h-8 sm:h-10" />
-        <h1 className="text-white font-bold text-lg sm:text-xl">
-          Dashboard ArcGIS
-        </h1>
+        
       </div>
 
       {/* Right side: Zoom Button always visible */}

@@ -27,10 +27,18 @@ const COLORS = {
   primary: "#0B6E4F",
   accent: "#F2C94C",
   blue: "#4FA9FF",
-  bg: "#F4F6F9"
+  bg: "#132032"
 };
 
 export default function NationwideCharts({ chartData }: { chartData: any }) {
+
+  // ================ FIX ERROR HERE =================
+  const safeData = chartData || {
+    population: [0, 0, 0, 0, 0],
+    agingIndex: [0, 0, 0, 0, 0],
+    gdp: [0, 0, 0, 0, 0],
+  };
+  // =================================================
 
   // ================= POPULATION =================
   const barPopulation = {
@@ -38,7 +46,7 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
     datasets: [
       {
         label: "Average population",
-        data: chartData.population,
+        data: safeData.population,
         backgroundColor: COLORS.blue,
         borderColor: COLORS.accent,
         borderWidth: 2,
@@ -53,7 +61,7 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
     datasets: [
       {
         label: "Aging index",
-        data: chartData.agingIndex,
+        data: safeData.agingIndex,
         fill: true,
         backgroundColor: `${COLORS.blue}22`,
         borderColor: COLORS.primary,
@@ -69,7 +77,7 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
     datasets: [
       {
         label: "GDP growth rate",
-        data: chartData.gdp,
+        data: safeData.gdp,
         backgroundColor: COLORS.primary,
         borderColor: COLORS.accent,
         borderWidth: 2,
@@ -79,9 +87,9 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
   };
 
   return (
-    <div className="w-full mt-20">
+    <div className="w-full">
 
-      <h3 className="font-bold text-[#4e4e4e] text-lg mb-4">NATIONWIDE</h3>
+      <h1 className="text-3xl font-bold mb-6">NATIONWIDE </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 

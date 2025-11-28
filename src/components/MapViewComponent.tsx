@@ -196,7 +196,7 @@ const MapViewComponent: React.FC<MapProps> = ({
           {/* Dropdown الفلتر */}
           <div className="relative">
             <select
-              className="w-full text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg bg-white/80 
+              className="w-full text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg bg-[#111c2b] 
                    focus:ring-2 focus:ring-blue-500 appearance-none pr-7 sm:pr-8 cursor-pointer"
               onChange={(e) => applyFilter(e.target.value)}
             >
@@ -217,7 +217,7 @@ const MapViewComponent: React.FC<MapProps> = ({
             <input
               type="text"
               placeholder="Search by project name..."
-              className="w-full text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg bg-white/80 
+              className="w-full text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border rounded-lg bg-[#111c2b]
                    focus:ring-2 focus:ring-blue-500 pl-8 sm:pl-10"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
