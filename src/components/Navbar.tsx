@@ -27,7 +27,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
       {/* Right side: Zoom Button always visible */}
       <button
-        className="px-3 sm:px-4 py-1.5 sm:py-2 text-white font-semibold rounded-lg hover:opacity-90 transition"
+        className="px-3 sm:px-4 py-1.5 sm:py-2 text-white font-semibold rounded-lg hover:opacity-90 transition cursor-pointer"
         style={{ backgroundColor: brandAccent }}
         onClick={onZoomClick}
       >

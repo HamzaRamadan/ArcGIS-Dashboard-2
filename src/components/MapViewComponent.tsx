@@ -131,23 +131,33 @@ const MapViewComponent: React.FC<MapProps> = ({
       });
 
       // Click event → open overlay card
-      viewObj.when(() => {
-        viewObj.on("click", async (event: any) => {
-          const hitTestResult = await viewObj.hitTest(event);
-          const graphic = hitTestResult.results.find(
-            (r: any) => r.graphic.layer === projectsLayer
-          )?.graphic;
+     viewObj.when(() => {
+  viewObj.on("click", async (event: any) => {
+    const hitTestResult = await viewObj.hitTest(event);
+    const graphic = hitTestResult.results.find(
+      (r: any) => r.graphic.layer === projectsLayer
+    )?.graphic;
 
-          if (graphic) {
-            const attr = graphic.attributes;
-            const screenPoint = viewObj.toScreen(event.mapPoint);
-            setPopupPosition({ x: screenPoint.x, y: screenPoint.y });
-            setSelectedFeature(attr);
-          } else {
-            setSelectedFeature(null);
-          }
-        });
-      });
+    if (graphic) {
+      const attr = graphic.attributes;
+      const screenPoint = viewObj.toScreen(event.mapPoint);
+      setPopupPosition({ x: screenPoint.x, y: screenPoint.y });
+      setSelectedFeature(attr);
+    } else {
+      setSelectedFeature(null);
+    }
+  });
+
+  // ✅ Pointer-move for hover cursor
+  viewObj.on("pointer-move", async (event: any) => {
+    const hitTestResult = await viewObj.hitTest(event);
+    const overGraphic = hitTestResult.results.some(
+      (r: any) => r.graphic.layer === projectsLayer
+    );
+
+    viewObj.container.style.cursor = overGraphic ? "pointer" : "default";
+  });
+});
 
       setMapReady(true);
     })();
