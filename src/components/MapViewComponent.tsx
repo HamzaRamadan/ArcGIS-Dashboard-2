@@ -250,7 +250,7 @@ const MapViewComponent: React.FC<MapProps> = ({
           className="absolute z-50 w-[320px] sm:w-[400px] max-w-[90%] 
                rounded-2xl overflow-hidden shadow-2xl 
                animate-[popupShow_0.25s_ease-out]
-               backdrop-blur-2xl bg-white/80 border border-white/50"
+               backdrop-blur-2xl bg-gradient-to-r from-[#080D18] to-[#0F1A2B] border border-white/50"
           style={{
             top: "50%",
             left: "50%",
@@ -258,7 +258,7 @@ const MapViewComponent: React.FC<MapProps> = ({
           }}
         >
           {/* Header with gradient */}
-          <div className="relative bg-gradient-to-r from-[#0a2d37] to-[#06505c] text-white px-4 py-3">
+          <div className="relative bg-gradient-to-r from-[#080D18] to-[#0F1A2B] text-white px-4 py-3">
             <h3 className="text-lg font-bold truncate">
               {selectedFeature.Name || "Project Name"}
             </h3>
@@ -289,13 +289,13 @@ const MapViewComponent: React.FC<MapProps> = ({
               ].map(([label, value, icon], i) => (
                 <div
                   key={i}
-                  className="flex items-center space-x-2 bg-white/70 backdrop-blur-md 
-                       px-3 py-2 rounded-lg border border-gray-200 hover:bg-white transition text-sm"
+                  className="flex items-center space-x-2 bg-[#132032] backdrop-blur-md 
+                       px-3 py-2 rounded-lg border border-[#0F1A2B] hover:bg-[#0F1A2B] transition text-sm"
                 >
                   <span className="text-xl">{icon}</span>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-gray-600">{label}</span>
-                    <span className="text-gray-800 font-medium truncate max-w-[120px]">
+                    <span className="font-semibold text-[#fff]">{label}</span>
+                    <span className="text-[#fff] font-medium truncate max-w-[120px]">
                       {value || "-"}
                     </span>
                   </div>
