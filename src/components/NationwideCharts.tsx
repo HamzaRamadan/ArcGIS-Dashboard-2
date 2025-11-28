@@ -81,7 +81,7 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
   return (
     <div className="w-full mt-20">
 
-      <h3 className="font-bold text-gray-700 text-lg mb-4">NATIONWIDE</h3>
+      <h3 className="font-bold text-[#4e4e4e] text-lg mb-4">NATIONWIDE</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 

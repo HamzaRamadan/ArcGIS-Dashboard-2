@@ -13,6 +13,7 @@ import {
   Legend,
   ArcElement,
 } from "chart.js";
+import Feature from "./Feature";
 
 ChartJS.register(
   BarElement,
@@ -159,10 +160,9 @@ export default function RightPanel() {
 
   return (
     // <div className="w-full max-w-full overflow-x-hidden ">
-      <div className="flex flex-col gap-6 w-full max-w-full">
-
-
-      <h3 className="font-bold text-gray-700 text-lg mb-4">
+    <div className="flex flex-col gap-6 w-full max-w-full">
+      <Feature />
+      <h3 className="font-bold text-[#4e4e4e] text-lg mb-4">
         DEVELOPMENT PROJECTS (ArcGIS)
       </h3>
 

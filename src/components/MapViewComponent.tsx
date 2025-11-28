@@ -228,32 +228,37 @@ const MapViewComponent: React.FC<MapProps> = ({
       </div>
 
       {/* Map */}
-      <div ref={mapRef} className="w-full h-[60vh] md:h-[80vh] lg:h-[92vh]" />
+      <div ref={mapRef} className="w-full h-[50vh] md:h-[70vh] lg:h-[80vh]" />
 
       {/* Loading Screen */}
+      {/* Sniper Spinner Loading */}
       {!mapReady && (
-        <div
-          className="absolute inset-0 flex items-center justify-center bg-white/70 
-                        z-40 text-lg font-semibold"
-        >
-          Loading map...
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-white/30 backdrop-blur-lg p-6">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-r-transparent rounded-full animate-spin"></div>
+
+          {/* Text */}
+          <div className="text-gray-700 text-lg font-medium mt-4">
+            Loading map ...
+          </div>
         </div>
       )}
 
       {/* Modern Popup */}
       {selectedFeature && (
         <div
-          className="absolute z-50 w-[320px] sm:w-[360px] max-w-[90%] 
-                     rounded-2xl overflow-hidden shadow-2xl 
-                     animate-[popupShow_0.25s_ease-out]
-                     backdrop-blur-2xl bg-white/80 border border-white/50"
+          className="absolute z-50 w-[320px] sm:w-[400px] max-w-[90%] 
+               rounded-2xl overflow-hidden shadow-2xl 
+               animate-[popupShow_0.25s_ease-out]
+               backdrop-blur-2xl bg-white/80 border border-white/50"
           style={{
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
           }}
         >
-          <div className="relative bg-[linear-gradient(135deg,#0a2d37,#0a2d37)] text-white px-4 py-3">
+          {/* Header with gradient */}
+          <div className="relative bg-gradient-to-r from-[#0a2d37] to-[#06505c] text-white px-4 py-3">
             <h3 className="text-lg font-bold truncate">
               {selectedFeature.Name || "Project Name"}
             </h3>
@@ -261,36 +266,42 @@ const MapViewComponent: React.FC<MapProps> = ({
             <button
               onClick={() => setSelectedFeature(null)}
               className="absolute top-2 right-2 bg-white/30 hover:bg-white/40 
-                         transition rounded-full w-8 h-8 flex items-center justify-center"
+                   transition rounded-full w-8 h-8 flex items-center justify-center"
             >
               ✕
             </button>
           </div>
 
-          <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-            {[
-              [
-                "Type",
-                typeMapping[selectedFeature.Type] || selectedFeature.Type,
-              ],
-              ["Stage", selectedFeature.Stage],
-              ["Premises", selectedFeature.Class],
-              ["Year", selectedFeature.Year],
-              ["Project Size", selectedFeature.Size],
-              ["Notes", selectedFeature.Notes],
-            ].map(([label, value], i) => (
-              <div
-                key={i}
-                className="flex justify-between items-center bg-white/70 
-                           backdrop-blur-md px-3 py-2 rounded-lg border 
-                           border-gray-200 hover:bg-white transition text-sm"
-              >
-                <span className="font-semibold text-gray-600">{label}</span>
-                <span className="text-gray-800 font-medium truncate max-w-[150px] text-right">
-                  {value || "-"}
-                </span>
-              </div>
-            ))}
+          {/* Body with two-column layout */}
+          <div className="p-4 max-h-[60vh] overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                [
+                  "Type",
+                  typeMapping[selectedFeature.Type] || selectedFeature.Type,
+                  "🗂️",
+                ],
+                ["Stage", selectedFeature.Stage, "🚧"],
+                ["Premises", selectedFeature.Class, "🏢"],
+                ["Year", selectedFeature.Year, "📅"],
+                ["Project Size", selectedFeature.Size, "📏"],
+                ["Notes", selectedFeature.Notes, "📝"],
+              ].map(([label, value, icon], i) => (
+                <div
+                  key={i}
+                  className="flex items-center space-x-2 bg-white/70 backdrop-blur-md 
+                       px-3 py-2 rounded-lg border border-gray-200 hover:bg-white transition text-sm"
+                >
+                  <span className="text-xl">{icon}</span>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-600">{label}</span>
+                    <span className="text-gray-800 font-medium truncate max-w-[120px]">
+                      {value || "-"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

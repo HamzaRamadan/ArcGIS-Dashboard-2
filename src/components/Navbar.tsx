@@ -12,26 +12,29 @@ const Navbar: React.FC<NavbarProps> = ({
   brandLogo,
   brandPrimary,
   brandAccent,
-  onZoomClick
+  onZoomClick,
 }) => {
   return (
     <nav
-      className="w-full flex items-center justify-between px-6 py-4 shadow-md"
+      className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 shadow-md"
       style={{ backgroundColor: brandPrimary }}
     >
+      {/* Left side: Logo + Title */}
       <div className="flex items-center gap-3">
-        <img src={brandLogo} alt="logo" className="h-10" />
-        <h1 className="text-white font-bold text-xl">Dashboard ArcGIS</h1>
+        <img src={brandLogo} alt="logo" className="h-8 sm:h-10" />
+        <h1 className="text-white font-bold text-lg sm:text-xl">
+          Dashboard ArcGIS
+        </h1>
       </div>
 
+      {/* Right side: Zoom Button always visible */}
       <button
-        className="px-4 py-2 text-white font-semibold rounded-lg"
+        className="px-3 sm:px-4 py-1.5 sm:py-2 text-white font-semibold rounded-lg hover:opacity-90 transition"
         style={{ backgroundColor: brandAccent }}
         onClick={onZoomClick}
       >
         Zoom to Layer
       </button>
-
     </nav>
   );
 };
