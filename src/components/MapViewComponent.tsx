@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from "react";
 import { Search, Filter } from "lucide-react";
@@ -80,27 +81,48 @@ const MapViewComponent: React.FC<MapProps> = ({
 
       map.add(projectsLayer);
 
+      // viewObj = new MapView({
+      //   container: mapRef.current as any,
+      //   map,
+      //   zoom: 7,
+      //   center: [49.6, 25.4],
+      //   popupEnabled: false,
+      // });
       viewObj = new MapView({
-        container: mapRef.current as any,
-        map,
-        zoom: 7,
-        center: [49.6, 25.4],
-        popupEnabled: false,
-      });
+  container: mapRef.current as any,
+  map,zoom: 10,
+  popupEnabled: false,
+});
+
 
       setView(viewObj);
+      (window as any)._mapView = viewObj;    
       setLayer(projectsLayer);
       (window as any)._projectsLayer = projectsLayer;
 
       // Auto zoom
-      const layerExtent = await projectsLayer.queryExtent();
-      if (layerExtent?.extent) {
-        try {
-          await viewObj.goTo(layerExtent.extent);
-        } catch {
-          /* empty */
-        }
-      }
+      // const layerExtent = await projectsLayer.queryExtent();
+      // if (layerExtent?.extent) {
+      //   try {
+      //     await viewObj.goTo(layerExtent.extent);
+      //   } catch {
+      //     /* empty */
+      //   }
+      // }
+      // Auto zoom
+const layerExtent = await projectsLayer.queryExtent();
+
+viewObj.when(async () => {
+  if (layerExtent?.extent) {
+    try {
+      await viewObj.goTo({ 
+        target: layerExtent.extent, 
+        zoom: viewObj.zoom 
+      });
+    } catch {}
+  }
+});
+
 
       // Fetch chart data
       const res = await projectsLayer.queryFeatures({
@@ -260,11 +282,19 @@ const MapViewComponent: React.FC<MapProps> = ({
                rounded-2xl overflow-hidden shadow-2xl 
                animate-[popupShow_0.25s_ease-out]
                backdrop-blur-2xl bg-gradient-to-r from-[#080D18] to-[#0F1A2B] border border-white/50"
+          // style={{
+          //   top: "50%",
+          //   left: "50%",
+          //   transform: "translate(-50%, -50%)",
+          // }}
           style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
+  top: "1rem",
+  right: "1rem",
+  left: "auto",
+  transform: "none",
+  maxHeight: "80vh",
+}}
+
         >
           {/* Header with gradient */}
           <div className="relative bg-gradient-to-r from-[#080D18] to-[#0F1A2B] text-white px-4 py-3">

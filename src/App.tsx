@@ -61,8 +61,14 @@ export default function App() {
   // Render page content based on activeTab
   const renderContent = () => {
     if (activeTab === "dashboard") return <DashboardContent stats={stats} />;
-    if (activeTab === "charts") return <ChartsContent stats={stats} />;
-    if (activeTab === "DevelopmentProjects") return <DevelopmentProjectsPage />;
+    // if (activeTab === "charts") return <ChartsContent stats={stats} />;
+    if (activeTab === "charts") 
+    return <ChartsContent stats={stats} mapView={mapView} mapLayer={mapLayer} />;
+
+    // if (activeTab === "DevelopmentProjects") return <DevelopmentProjectsPage />;
+    if (activeTab === "DevelopmentProjects") 
+  return <DevelopmentProjectsPage mapView={mapView} mapLayer={mapLayer} />;
+
     if (activeTab === "NationwideCharts") return <NationwideCharts chartData={chartData} />;
     if (activeTab === "projects")
       return <ProjectsList projects={projects} setSelectedProject={setSelectedProject} />;

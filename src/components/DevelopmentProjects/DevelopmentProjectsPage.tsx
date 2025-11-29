@@ -38,9 +38,10 @@ where=1%3D1
 &f=json
 `;
 
-export default function DevelopmentProjectsPage() {
+export default function DevelopmentProjectsPage({ mapView, mapLayer }: any) {
   const [projects, setProjects] = useState<any[]>([]);
 
+  // FETCH PROJECTS
   useEffect(() => {
     fetch(ARCGIS_URL)
       .then((res) => res.json())
@@ -50,13 +51,38 @@ export default function DevelopmentProjectsPage() {
       .catch((err) => console.error("Error loading ArcGIS:", err));
   }, []);
 
+  // -------------------- ZOOM FUNCTION --------------------
+  const zoomToProjects = async (field: string, value: number) => {
+    if (!mapLayer || !mapView) return;
+
+    const query = mapLayer.createQuery();
+    query.where = `${field} = ${value}`;
+    query.returnGeometry = true;
+
+    const res = await mapLayer.queryFeatures(query);
+
+    if (res.features.length > 0) {
+      const geoms = res.features.map((f: any) => f.geometry);
+      mapView.goTo(geoms);
+    }
+  };
+
   // ---------------- PREPARE CHART DATA ----------------
+
   const countByClass: Record<number, number> = {};
   projects.forEach((p) => {
     countByClass[p.Class] = (countByClass[p.Class] || 0) + 1;
   });
 
-  const classLabels = ["Commercial", "Industrial", "Residential", "Airport", "Other", "Land Division"];
+  const classLabels = [
+    "Commercial",
+    "Industrial",
+    "Residential",
+    "Airport",
+    "Other",
+    "Land Division",
+  ];
+
   const pieClassData = {
     labels: classLabels,
     datasets: [
@@ -70,34 +96,90 @@ export default function DevelopmentProjectsPage() {
           countByClass[5] || 0,
           countByClass[6] || 0,
         ],
-        backgroundColor: ["#DC582A","#B2B2B2","#CC8A00","#658D1B","#007096","#FFFF00"],
+        backgroundColor: [
+          "#DC582A",
+          "#B2B2B2",
+          "#CC8A00",
+          "#658D1B",
+          "#007096",
+          "#FFFF00",
+        ],
       },
     ],
   };
 
+  const pieOptions = {
+    plugins: {
+      legend: { labels: { color: "#fff" } },
+    },
+    onClick: (_evt: any, elements: any[]) => {
+      if (!elements.length) return;
+      const index = elements[0].index;
+      zoomToProjects("Class", index + 1);
+    },
+  };
+
   const countByStage: Record<number, number> = {};
-  projects.forEach((p) => { countByStage[p.Stage] = (countByStage[p.Stage] || 0) + 1; });
-  const stageLabels = ["Review","Under Construction","Completed","Other 4","Other 5"];
+  projects.forEach((p) => {
+    countByStage[p.Stage] = (countByStage[p.Stage] || 0) + 1;
+  });
+
+  const stageLabels = [
+    "Review",
+    "Under Construction",
+    "Completed",
+    "Other 4",
+    "Other 5",
+  ];
+
   const barStageData = {
     labels: stageLabels,
     datasets: [
       {
         label: "Projects by Stage",
-        data: [countByStage[1]||0,countByStage[2]||0,countByStage[3]||0,countByStage[4]||0,countByStage[5]||0],
+        data: [
+          countByStage[1] || 0,
+          countByStage[2] || 0,
+          countByStage[3] || 0,
+          countByStage[4] || 0,
+          countByStage[5] || 0,
+        ],
         backgroundColor: COLORS.primary,
       },
     ],
   };
 
+  const barOptions = {
+    plugins: {
+      legend: { labels: { color: "#fff" } },
+    },
+    onClick: (_evt: any, elements: any[]) => {
+      if (!elements.length) return;
+      const index = elements[0].index;
+      zoomToProjects("Stage", index + 1);
+    },
+  };
+
   const countByYear: Record<number, number> = {};
-  projects.forEach((p) => { countByYear[p.Year] = (countByYear[p.Year] || 0) + 1; });
-  const yearLabels = ["2017","2018","2019","2020","2021","2022"];
+  projects.forEach((p) => {
+    countByYear[p.Year] = (countByYear[p.Year] || 0) + 1;
+  });
+
+  const yearLabels = ["2017", "2018", "2019", "2020", "2021", "2022"];
+
   const lineYearData = {
     labels: yearLabels,
     datasets: [
       {
         label: "Projects by Year",
-        data: [countByYear[1]||0,countByYear[2]||0,countByYear[3]||0,countByYear[4]||0,countByYear[5]||0,countByYear[6]||0],
+        data: [
+          countByYear[1] || 0,
+          countByYear[2] || 0,
+          countByYear[3] || 0,
+          countByYear[4] || 0,
+          countByYear[5] || 0,
+          countByYear[6] || 0,
+        ],
         borderColor: COLORS.blue,
         backgroundColor: `${COLORS.blue}33`,
         tension: 0.4,
@@ -105,65 +187,47 @@ export default function DevelopmentProjectsPage() {
     ],
   };
 
+  const lineOptions = {
+    plugins: {
+      legend: { labels: { color: "#fff" } },
+    },
+    onClick: (_evt: any, elements: any[]) => {
+      if (!elements.length) return;
+      const index = elements[0].index;
+      zoomToProjects("Year", index + 1);
+    },
+  };
+
+  // -------------------- UI -----------------------------
+
   return (
-    <div className=" w-full">
+    <div className="w-full">
       <h1 className="text-3xl font-bold mb-6">DEVELOPMENT PROJECTS</h1>
 
       <div className="flex flex-col gap-6 w-full max-w-full">
-        {/* GRID SYSTEM */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Projects by Type */}
-          <div className="p-4 rounded-xl flex flex-col items-center justify-center" style={{ background: COLORS.bg }}>
-            <Pie
-              data={pieClassData}
-              height={250}
-              options={{
-                plugins: {
-                  legend: {
-                    display: true,
-                    position: "top",    
-                    align: "center",   
-                    labels: {
-                      boxWidth: 20,
-                      boxHeight: 20,
-                      padding: 15,
-                      color: "#fff",
-                    },
-                  },
-                  tooltip: {
-                    enabled: true,
-                  },
-                },
-              }}
-            />
+          <div
+            className="p-4 rounded-xl flex flex-col items-center justify-center"
+            style={{ background: COLORS.bg }}
+          >
+            <Pie data={pieClassData} height={250} options={pieOptions} />
           </div>
 
           {/* Projects by Stage */}
-          <div className="p-4 rounded-xl flex items-center justify-center" style={{ background: COLORS.bg }}>
-            <Bar data={barStageData} height={250} options={{
-  plugins: {
-    legend: {
-      labels: {
-        color: "#fff"  
-      }
-    }
-  }
-}}
-/>
+          <div
+            className="p-4 rounded-xl flex items-center justify-center"
+            style={{ background: COLORS.bg }}
+          >
+            <Bar data={barStageData} height={250} options={barOptions} />
           </div>
 
           {/* Projects by Year */}
-          <div className="p-4 rounded-xl flex items-center justify-center" style={{ background: COLORS.bg }}>
-            <Line data={lineYearData} height={250} options={{
-  plugins: {
-    legend: {
-      labels: {
-        color: "#fff"  
-      }
-    }
-  }
-}}
-/>
+          <div
+            className="p-4 rounded-xl flex items-center justify-center"
+            style={{ background: COLORS.bg }}
+          >
+            <Line data={lineYearData} height={250} options={lineOptions} />
           </div>
         </div>
       </div>
