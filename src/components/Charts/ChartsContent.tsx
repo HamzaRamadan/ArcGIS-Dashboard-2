@@ -6,12 +6,14 @@ import {
   Legend,
 } from "chart.js";
 import { Pie } from "react-chartjs-2";
+import { useRef } from "react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function ChartsContent({ stats, mapView, mapLayer }: any) {
 
-  // Plugin for click
+  const highlightRef = useRef<any>(null); // لحفظ آخر Highlight
+
   const clickPlugin = {
     id: "clickHandler",
     afterEvent(chart: any, args: any) {
@@ -20,7 +22,7 @@ export default function ChartsContent({ stats, mapView, mapLayer }: any) {
       if (event.type !== "click") return;
 
       const points = chart.getElementsAtEventForMode(
-        event.native,  
+        event.native,
         "nearest",
         { intersect: true },
         false
@@ -32,30 +34,41 @@ export default function ChartsContent({ stats, mapView, mapLayer }: any) {
 
       let stageValue = 0;
 
-      if (index === 0) stageValue = 3;         // Completed
-      if (index === 1) stageValue = 2;         // Under construction
-      if (index === 2) stageValue = 1;         // Pending
+      if (index === 0) stageValue = 3; 
+      if (index === 1) stageValue = 2;
+      if (index === 2) stageValue = 1;
 
-      // Zoom + highlight
-      if (mapLayer && mapView) {
-  mapLayer.queryFeatures({
-    where: `Stage = ${stageValue}`,
-    outFields: ["*"],
-    returnGeometry: true
-  }).then((res: any) => {
-    if (res.features.length > 0) {
+      if (!mapLayer || !mapView) return;
 
-      const geom = res.features[0].geometry;
+      mapLayer
+        .queryFeatures({
+          where: `Stage = ${stageValue}`,
+          outFields: ["*"],
+          returnGeometry: true,
+        })
+        .then((res: any) => {
+          if (res.features.length === 0) return;
 
-      mapView.goTo({
-        center: geom,
-        zoom: 12,
-      });
+          const geom = res.features[0].geometry;
 
-    }
-  });
-}
+          // ========== ZOOM ==========
+          mapView.goTo({
+            center: geom,
+            zoom: 12,
+          });
 
+          // ========== HIGHLIGHT ==========
+         mapView.whenLayerView(mapLayer).then((layerView: any) => {
+  // الغاء أي Highlight سابق
+  if (highlightRef.current) {
+    highlightRef.current.remove();
+  }
+
+  // عمل Highlight لجميع الـ features اللي رجعت من query
+  highlightRef.current = layerView.highlight(res.features); // تمرير كامل المصفوفة
+});
+
+        });
     },
   };
 
