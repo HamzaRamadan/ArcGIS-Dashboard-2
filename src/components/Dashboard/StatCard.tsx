@@ -1,7 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from "framer-motion";
-
-export default function StatCard({ title, value }: any) {
+interface StatCardProps {
+  title: string;
+  value: string | number;
+}
+export default function StatCard({ title, value }: StatCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}

@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
+import type { Project, Nullable } from "../../utils/types";
 
 const CLASS_LABELS: Record<number, string> = {
   1: "Commercial Development",
@@ -12,16 +12,24 @@ const CLASS_LABELS: Record<number, string> = {
 
 const ITEMS_PER_PAGE = 9;
 
-export default function ProjectsList({ projects, setSelectedProject }: any) {
+interface Props {
+  projects: Project[];
+  setSelectedProject: (project: Nullable<Project>) => void;
+}
+
+export default function ProjectsList({ projects, setSelectedProject }: Props) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const filtered = projects.filter((p: any) =>
+  const filtered = projects.filter((p: Project) =>
     (p.Name || "").toLowerCase().includes(query.toLowerCase())
   );
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const currentItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const currentItems = filtered.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
 
   const goToPage = (p: number) => {
     if (p < 1) p = 1;
@@ -31,7 +39,7 @@ export default function ProjectsList({ projects, setSelectedProject }: any) {
 
   return (
     <div>
-      <h3 className="text-3xl font-bold mb-6"> PROJECTS</h3>
+      <h3 className="text-3xl font-bold mb-6">PROJECTS</h3>
 
       <input
         type="text"
@@ -40,26 +48,28 @@ export default function ProjectsList({ projects, setSelectedProject }: any) {
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
-          setPage(1); 
+          setPage(1);
         }}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {currentItems.map((p: any, i: number) => (
+        {currentItems.map((p: Project, i: number) => (
           <div
             key={i}
             onClick={() => setSelectedProject(p)}
             className="bg-[#132032] p-5 rounded-xl border border-gray-700 hover:border-green-400 cursor-pointer transition-transform transform hover:scale-105"
           >
             <h4 className="font-bold text-lg">{p.Name || "No Name"}</h4>
+
             <p className="text-gray-400 text-sm mt-2">
-              Type: {CLASS_LABELS[p.Class] || "N/A"}
+              Type:{" "}
+              {p.Class !== undefined ? CLASS_LABELS[p.Class] || "N/A" : "N/A"}
             </p>
           </div>
         ))}
       </div>
 
-      {/* Enhanced Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center mt-6 space-x-2">
           <button
@@ -70,7 +80,6 @@ export default function ProjectsList({ projects, setSelectedProject }: any) {
             Previous
           </button>
 
-          {/* Display first page */}
           {page > 2 && (
             <button
               onClick={() => goToPage(1)}
@@ -80,10 +89,8 @@ export default function ProjectsList({ projects, setSelectedProject }: any) {
             </button>
           )}
 
-          {/* Ellipsis if needed */}
           {page > 3 && <span className="text-gray-400">...</span>}
 
-          {/* Current page +/-1 */}
           {page > 1 && (
             <button
               onClick={() => goToPage(page - 1)}
@@ -93,7 +100,9 @@ export default function ProjectsList({ projects, setSelectedProject }: any) {
             </button>
           )}
 
-          <button className="px-3 py-1 rounded bg-green-600 text-white">{page}</button>
+          <button className="px-3 py-1 rounded bg-green-600 text-white">
+            {page}
+          </button>
 
           {page < totalPages && (
             <button
@@ -104,10 +113,8 @@ export default function ProjectsList({ projects, setSelectedProject }: any) {
             </button>
           )}
 
-          {/* Ellipsis if needed */}
           {page < totalPages - 2 && <span className="text-gray-400">...</span>}
 
-          {/* Display last page */}
           {page < totalPages - 1 && (
             <button
               onClick={() => goToPage(totalPages)}

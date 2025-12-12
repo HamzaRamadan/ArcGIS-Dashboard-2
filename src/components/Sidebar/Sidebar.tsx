@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import SidebarItem from "./SidebarItem";
 import {
@@ -9,8 +8,12 @@ import {
   Folder,
   BarChart2,
 } from "lucide-react";
+type SidebarProps = {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+};
 
-export default function Sidebar({ activeTab, setActiveTab }: any) {
+export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   return (
     <>
       {/* Mobile Toggle Button */}

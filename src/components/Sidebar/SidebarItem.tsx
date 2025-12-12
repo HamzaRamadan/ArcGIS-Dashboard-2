@@ -1,7 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from "framer-motion";
-
-export default function SidebarItem({ icon, text, active, onClick }: any) {
+import type { ReactNode } from "react";
+type SidebarItemProps = {
+  icon: ReactNode;
+  text: string;
+  active: boolean;
+  onClick: () => void;
+};
+export default function SidebarItem({ icon, text, active, onClick }: SidebarItemProps) {
   return (
     <motion.div
       whileHover={{ scale: 1.03 }}

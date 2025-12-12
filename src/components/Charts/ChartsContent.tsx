@@ -1,76 +1,82 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, type ChartEvent } from "chart.js";
 import { Pie } from "react-chartjs-2";
 import { useRef } from "react";
+import  MapView  from "@arcgis/core/views/MapView";
+import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import FeatureLayerView from "@arcgis/core/views/layers/FeatureLayerView";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function ChartsContent({ stats, mapView, mapLayer }: any) {
+// نوع البيانات للإحصائيات
+interface Stats {
+  completed: number;
+  underConstruction: number;
+  pending: number;
+}
 
-  const highlightRef = useRef<any>(null); // لحفظ آخر Highlight
+interface ChartsContentProps {
+  stats: Stats;
+  mapView: MapView | null;
+  mapLayer: FeatureLayer | null;
+}
 
-  const clickPlugin = {
-    id: "clickHandler",
-    afterEvent(chart: any, args: any) {
-      const event = args.event;
+export default function ChartsContent({
+  stats,
+  mapView,
+  mapLayer,
+}: ChartsContentProps) {
+  // حفظ آخر Highlight
+  const highlightRef = useRef<__esri.Handle | null>(null); // أو أي Type مناسب للـ Highlight
 
-      if (event.type !== "click") return;
+ const clickPlugin = {
+  id: "clickHandler",
+  afterEvent(chart: ChartJS, args: { event: ChartEvent }) {
+    const event = args.event;
 
-      const points = chart.getElementsAtEventForMode(
-        event.native,
-        "nearest",
-        { intersect: true },
-        false
-      );
+    if (event.type !== "click") return;
 
-      if (points.length === 0) return;
+    const nativeEvent = event.native;
+    if (!nativeEvent) return; // ✅ التأكد من أنه مش null
 
-      const index = points[0].index;
+    const points = chart.getElementsAtEventForMode(
+      nativeEvent,
+      "nearest",
+      { intersect: true },
+      false
+    );
 
-      let stageValue = 0;
+    if (points.length === 0) return;
 
-      if (index === 0) stageValue = 3; 
-      if (index === 1) stageValue = 2;
-      if (index === 2) stageValue = 1;
+    const index = points[0].index;
 
-      if (!mapLayer || !mapView) return;
+    const stageValue = index === 0 ? 3 : index === 1 ? 2 : 1;
 
-      mapLayer
-        .queryFeatures({
-          where: `Stage = ${stageValue}`,
-          outFields: ["*"],
-          returnGeometry: true,
-        })
-        .then((res: any) => {
-          if (res.features.length === 0) return;
+    if (!mapLayer || !mapView) return;
 
-          const geom = res.features[0].geometry;
+    mapLayer.queryFeatures({
+      where: `Stage = ${stageValue}`,
+      outFields: ["*"],
+      returnGeometry: true,
+    }).then((res) => {
+      if (res.features.length === 0) return;
 
-          // ========== ZOOM ==========
-          mapView.goTo({
-            center: geom,
-            zoom: 12,
-          });
+      const geom = res.features[0].geometry;
 
-          // ========== HIGHLIGHT ==========
-         mapView.whenLayerView(mapLayer).then((layerView: any) => {
-  // الغاء أي Highlight سابق
-  if (highlightRef.current) {
-    highlightRef.current.remove();
-  }
+      // ========== ZOOM ==========
+      mapView.goTo({
+        center: geom,
+        zoom: 12,
+      });
 
-  // عمل Highlight لجميع الـ features اللي رجعت من query
-  highlightRef.current = layerView.highlight(res.features); // تمرير كامل المصفوفة
-});
+      // ========== HIGHLIGHT ==========
+      mapView.whenLayerView(mapLayer).then((layerView: FeatureLayerView) => {
+        if (highlightRef.current) highlightRef.current.remove();
+        highlightRef.current = layerView.highlight(res.features);
+      });
+    });
+  },
+};
 
-        });
-    },
-  };
 
   return (
     <div className="w-full">
@@ -84,11 +90,7 @@ export default function ChartsContent({ stats, mapView, mapLayer }: any) {
                 labels: ["Completed", "Under Const.", "Pending"],
                 datasets: [
                   {
-                    data: [
-                      stats.completed,
-                      stats.underConstruction,
-                      stats.pending,
-                    ],
+                    data: [stats.completed, stats.underConstruction, stats.pending],
                     backgroundColor: ["#0B6E4F", "#F2C94C", "#4FA9FF"],
                   },
                 ],

@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Bar, Line } from "react-chartjs-2";
-
 import {
   Chart as ChartJS,
   BarElement,
@@ -9,8 +7,10 @@ import {
   PointElement,
   LineElement,
   Tooltip,
-  Legend
+  Legend,
 } from "chart.js";
+
+import type { NationwideData, Nullable } from "../../utils/types";
 
 ChartJS.register(
   BarElement,
@@ -26,18 +26,19 @@ const COLORS = {
   primary: "#0B6E4F",
   accent: "#F2C94C",
   blue: "#4FA9FF",
-  bg: "#132032"
+  bg: "#132032",
 };
 
-export default function NationwideCharts({ chartData }: { chartData: any }) {
+interface Props {
+  chartData?: Nullable<NationwideData>;
+}
 
-  // ================ FIX ERROR HERE =================
-  const safeData = chartData || {
+export default function NationwideCharts({ chartData }: Props) {
+  const safeData: NationwideData = chartData || {
     population: [0, 0, 0, 0, 0],
     agingIndex: [0, 0, 0, 0, 0],
     gdp: [0, 0, 0, 0, 0],
   };
-  // =================================================
 
   // ================= POPULATION =================
   const barPopulation = {
@@ -49,9 +50,9 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
         backgroundColor: COLORS.blue,
         borderColor: COLORS.accent,
         borderWidth: 2,
-        borderRadius: 8
-      }
-    ]
+        borderRadius: 8,
+      },
+    ],
   };
 
   // ================= AGING INDEX =================
@@ -65,9 +66,9 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
         backgroundColor: `${COLORS.blue}22`,
         borderColor: COLORS.primary,
         pointBackgroundColor: COLORS.accent,
-        tension: 0.35
-      }
-    ]
+        tension: 0.35,
+      },
+    ],
   };
 
   // ================= GDP GROWTH =================
@@ -80,32 +81,39 @@ export default function NationwideCharts({ chartData }: { chartData: any }) {
         backgroundColor: COLORS.primary,
         borderColor: COLORS.accent,
         borderWidth: 2,
-        borderRadius: 6
-      }
-    ]
+        borderRadius: 6,
+      },
+    ],
   };
 
   return (
     <div className="w-full">
-
-      <h1 className="text-3xl font-bold mb-6">NATIONWIDE </h1>
+      <h1 className="text-3xl font-bold mb-6">NATIONWIDE</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
         {/* POPULATION */}
-        <div className="flex-1 p-4 rounded-xl" style={{ background: COLORS.bg }}>
+        <div
+          className="flex-1 p-4 rounded-xl"
+          style={{ background: COLORS.bg }}
+        >
           <p className="text-sm font-semibold mb-2">Average population</p>
           <Bar data={barPopulation} height={140} />
         </div>
 
         {/* AGING */}
-        <div className="flex-1 p-4 rounded-xl" style={{ background: COLORS.bg }}>
+        <div
+          className="flex-1 p-4 rounded-xl"
+          style={{ background: COLORS.bg }}
+        >
           <p className="text-sm font-semibold mb-2">Aging index</p>
           <Line data={lineAging} height={140} />
         </div>
 
         {/* GDP */}
-        <div className="flex-1 p-4 rounded-xl" style={{ background: COLORS.bg }}>
+        <div
+          className="flex-1 p-4 rounded-xl"
+          style={{ background: COLORS.bg }}
+        >
           <p className="text-sm font-semibold mb-2">GDP growth rate</p>
           <Bar data={barGDP} height={140} />
         </div>
