@@ -12,6 +12,7 @@ import {
   Legend,
   ArcElement,
 } from "chart.js";
+import { useFeatureLayer } from "../../context/FeatureLayerContext";
 
 ChartJS.register(
   BarElement,
@@ -31,27 +32,17 @@ const COLORS = {
   bg: "#132032",
 };
 
-const ARCGIS_URL = `https://services1.arcgis.com/dEWY7aW7h9zHrSP9/arcgis/rest/services/Development_Projects/FeatureServer/0/query?
-where=1%3D1
-&outFields=*
-&returnGeometry=false
-&f=json
-`;
-
 export default function DevelopmentProjectsPage({ mapView, mapLayer }: any) {
+ const FEATURE_LAYER_URL = useFeatureLayer();
   const [projects, setProjects] = useState<any[]>([]);
 
-  // FETCH PROJECTS
   useEffect(() => {
-    fetch(ARCGIS_URL)
+    fetch(FEATURE_LAYER_URL + "/query?where=1%3D1&outFields=*&returnGeometry=false&f=json")
       .then((res) => res.json())
-      .then((data) => {
-        setProjects(data.features.map((f: any) => f.attributes));
-      })
+      .then((data) => setProjects(data.features.map((f: any) => f.attributes)))
       .catch((err) => console.error("Error loading ArcGIS:", err));
-  }, []);
+  }, [FEATURE_LAYER_URL]);
 
-  // -------------------- ZOOM FUNCTION --------------------
   const zoomToProjects = async (field: string, value: number) => {
     if (!mapLayer || !mapView) return;
 
@@ -67,7 +58,6 @@ export default function DevelopmentProjectsPage({ mapView, mapLayer }: any) {
     }
   };
 
-  // ---------------- PREPARE CHART DATA ----------------
 
   const countByClass: Record<number, number> = {};
   projects.forEach((p) => {
@@ -198,7 +188,6 @@ export default function DevelopmentProjectsPage({ mapView, mapLayer }: any) {
     },
   };
 
-  // -------------------- UI -----------------------------
 
   return (
     <div className="w-full">

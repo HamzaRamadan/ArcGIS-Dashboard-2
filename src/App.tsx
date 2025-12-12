@@ -14,11 +14,11 @@ import Navbar from "./components/Navbar";
 import MapView from "@arcgis/core/views/MapView";
 
 import type { Project, Nullable, Stats, NationwideData } from "./utils/types";
+import { FeatureLayerProvider, useFeatureLayer } from "./context/FeatureLayerContext";
 
-const FEATURE_LAYER_URL =
-  "https://services1.arcgis.com/dEWY7aW7h9zHrSP9/arcgis/rest/services/Development_Projects/FeatureServer/0";
+export function MainApp() {
+  const FEATURE_LAYER_URL = useFeatureLayer();
 
-export default function App() {
   // State
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [stats, setStats] = useState<Stats>({
@@ -28,8 +28,7 @@ export default function App() {
     pending: 0,
   });
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] =
-    useState<Nullable<Project>>(null);
+  const [selectedProject, setSelectedProject] = useState<Nullable<Project>>(null);
   const [mapView, setMapView] = useState<Nullable<MapView>>(null);
   const [mapLayer, setMapLayer] = useState<Nullable<FeatureLayer>>(null);
   const [chartData, setChartData] = useState<Nullable<NationwideData>>(null);
@@ -53,9 +52,7 @@ export default function App() {
         layer.queryFeatureCount({ where: "Stage = 1" }),
       ];
 
-      const [total, completed, underConstruction, pending] = await Promise.all(
-        queries
-      );
+      const [total, completed, underConstruction, pending] = await Promise.all(queries);
       setStats({ total, completed, underConstruction, pending });
     }
 
@@ -66,74 +63,46 @@ export default function App() {
         returnGeometry: false,
       });
 
-      // تحويل القيم الرقمية لتتناسب مع type Project
       setProjects(
         res.features.map((f: any) => ({
           ...f.attributes,
-          Year:
-            f.attributes.Year !== undefined
-              ? Number(f.attributes.Year)
-              : undefined,
-          Class:
-            f.attributes.Class !== undefined
-              ? Number(f.attributes.Class)
-              : undefined,
-          Stage:
-            f.attributes.Stage !== undefined
-              ? Number(f.attributes.Stage)
-              : undefined,
-          Type:
-            f.attributes.Type !== undefined
-              ? Number(f.attributes.Type)
-              : undefined,
+          Year: f.attributes.Year !== undefined ? Number(f.attributes.Year) : undefined,
+          Class: f.attributes.Class !== undefined ? Number(f.attributes.Class) : undefined,
+          Stage: f.attributes.Stage !== undefined ? Number(f.attributes.Stage) : undefined,
+          Type: f.attributes.Type !== undefined ? Number(f.attributes.Type) : undefined,
         }))
       );
     }
 
     loadStats();
     loadProjects();
-  }, []);
+  }, [FEATURE_LAYER_URL]);
 
-  // Render page content based on activeTab
-  const renderContent = () => {
-    if (activeTab === "dashboard") return <DashboardContent stats={stats} />;
-    if (activeTab === "charts")
-      return (
-        <ChartsContent stats={stats} mapView={mapView} mapLayer={mapLayer} />
-      );
-    if (activeTab === "DevelopmentProjects")
-      return <DevelopmentProjectsPage mapView={mapView} mapLayer={mapLayer} />;
-    if (activeTab === "NationwideCharts")
-      return <NationwideCharts chartData={chartData} />;
-    if (activeTab === "projects")
-      return (
-        <ProjectsList
-          projects={projects}
-          setSelectedProject={setSelectedProject}
-        />
-      );
-    return (
-      <div className="text-xl opacity-70 p-10">
-        {activeTab} — Coming Soon...
-      </div>
+  // Mapping tabs to components
+  const tabComponents: Record<string, JSX.Element> = {
+    dashboard: <DashboardContent stats={stats} />,
+    charts: <ChartsContent stats={stats} mapView={mapView} mapLayer={mapLayer} />,
+    DevelopmentProjects: <DevelopmentProjectsPage mapView={mapView} mapLayer={mapLayer} />,
+    NationwideCharts: <NationwideCharts chartData={chartData} />,
+    projects: <ProjectsList projects={projects} setSelectedProject={setSelectedProject} />,
+  };
+
+  const renderContent = (): JSX.Element => {
+    return tabComponents[activeTab] || (
+      <div className="text-xl opacity-70 p-10">{activeTab} — Coming Soon...</div>
     );
   };
 
   return (
     <div className="flex flex-col bg-[#0d1623] min-h-screen text-white overflow-hidden">
       {isLoading ? (
-        <div
-          className="h-screen w-screen flex flex-col items-center justify-center 
-        bg-gradient-to-br from-[#0A2D37] to-[#080D18] text-white animate-fadeIn space-y-6"
-        >
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0A2D37] to-[#080D18] text-white animate-fadeIn space-y-6">
           <div className="flex space-x-4">
             <div className="w-5 h-5 bg-white rounded-full animate-bounce"></div>
             <div className="w-5 h-5 bg-white rounded-full animate-bounce delay-150"></div>
             <div className="w-5 h-5 bg-white rounded-full animate-bounce delay-300"></div>
           </div>
-          <p className="text-xl md:text-4xl font-semibold opacity-90 tracking-wide">
-            Loading...
-          </p>
+          <p className="text-xl md:text-4xl font-semibold opacity-90 tracking-wide">Loading...</p>
         </div>
       ) : (
         <>
@@ -166,24 +135,25 @@ export default function App() {
               {renderContent()}
 
               <div className="mt-10 bg-[#0a1320] rounded-xl h-[470px] border border-gray-800 overflow-hidden relative">
-                <MapViewComponent
-                  setChartData={setChartData}
-                  setView={setMapView}
-                  setLayer={setMapLayer}
-                />
+                <MapViewComponent setChartData={setChartData} setView={setMapView} setLayer={setMapLayer} />
               </div>
             </div>
 
             {/* Popup */}
             {selectedProject && (
-              <ProjectPopup
-                project={selectedProject}
-                onClose={() => setSelectedProject(null)}
-              />
+              <ProjectPopup project={selectedProject} onClose={() => setSelectedProject(null)} />
             )}
           </div>
         </>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <FeatureLayerProvider>
+      <MainApp />
+    </FeatureLayerProvider>
   );
 }

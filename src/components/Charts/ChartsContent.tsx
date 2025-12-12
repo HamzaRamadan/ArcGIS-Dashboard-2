@@ -25,8 +25,7 @@ export default function ChartsContent({
   mapView,
   mapLayer,
 }: ChartsContentProps) {
-  // حفظ آخر Highlight
-  const highlightRef = useRef<__esri.Handle | null>(null); // أو أي Type مناسب للـ Highlight
+  const highlightRef = useRef<__esri.Handle | null>(null); 
 
  const clickPlugin = {
   id: "clickHandler",
