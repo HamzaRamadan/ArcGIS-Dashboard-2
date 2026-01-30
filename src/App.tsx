@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import MapView from "@arcgis/core/views/MapView";
 
 import Sidebar from "./components/Sidebar/Sidebar";
 import DashboardContent from "./components/Dashboard/DashboardContent";
@@ -11,22 +14,23 @@ import MapViewComponent from "./components/Map/MapViewComponent";
 import DevelopmentProjectsPage from "./components/DevelopmentProjects/DevelopmentProjectsPage";
 import NationwideCharts from "./components/NationwideCharts/NationwideCharts";
 import Navbar from "./components/Navbar";
-import MapView from "@arcgis/core/views/MapView";
 
 import type { Project, Nullable, Stats, NationwideData } from "./utils/types";
 import { FeatureLayerProvider, useFeatureLayer } from "./context/FeatureLayerContext";
+import Map2 from "./components/Map2/Map2";
 
 export function MainApp() {
   const FEATURE_LAYER_URL = useFeatureLayer();
+const location = useLocation();
 
-  // State
-  const [activeTab, setActiveTab] = useState<string>("dashboard");
+
   const [stats, setStats] = useState<Stats>({
     total: 0,
     completed: 0,
     underConstruction: 0,
     pending: 0,
   });
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Nullable<Project>>(null);
   const [mapView, setMapView] = useState<Nullable<MapView>>(null);
@@ -34,25 +38,24 @@ export function MainApp() {
   const [chartData, setChartData] = useState<Nullable<NationwideData>>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Loading screen timer
+  // Loading screen
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1800);
+    const timer = setTimeout(() => setIsLoading(false), 100);
     return () => clearTimeout(timer);
   }, []);
 
-  // Load data from ArcGIS FeatureLayer
+  // Load data
   useEffect(() => {
     const layer = new FeatureLayer({ url: FEATURE_LAYER_URL });
 
     async function loadStats() {
-      const queries = [
+      const [total, completed, underConstruction, pending] = await Promise.all([
         layer.queryFeatureCount({ where: "1=1" }),
         layer.queryFeatureCount({ where: "Stage = 3" }),
         layer.queryFeatureCount({ where: "Stage = 2" }),
         layer.queryFeatureCount({ where: "Stage = 1" }),
-      ];
+      ]);
 
-      const [total, completed, underConstruction, pending] = await Promise.all(queries);
       setStats({ total, completed, underConstruction, pending });
     }
 
@@ -78,21 +81,6 @@ export function MainApp() {
     loadProjects();
   }, [FEATURE_LAYER_URL]);
 
-  // Mapping tabs to components
-  const tabComponents: Record<string, JSX.Element> = {
-    dashboard: <DashboardContent stats={stats} />,
-    charts: <ChartsContent stats={stats} mapView={mapView} mapLayer={mapLayer} />,
-    DevelopmentProjects: <DevelopmentProjectsPage mapView={mapView} mapLayer={mapLayer} />,
-    NationwideCharts: <NationwideCharts chartData={chartData} />,
-    projects: <ProjectsList projects={projects} setSelectedProject={setSelectedProject} />,
-  };
-
-  const renderContent = (): JSX.Element => {
-    return tabComponents[activeTab] || (
-      <div className="text-xl opacity-70 p-10">{activeTab} — Coming Soon...</div>
-    );
-  };
-
   return (
     <div className="flex flex-col bg-[#0d1623] min-h-screen text-white overflow-hidden">
       {isLoading ? (
@@ -102,7 +90,9 @@ export function MainApp() {
             <div className="w-5 h-5 bg-white rounded-full animate-bounce delay-150"></div>
             <div className="w-5 h-5 bg-white rounded-full animate-bounce delay-300"></div>
           </div>
-          <p className="text-xl md:text-4xl font-semibold opacity-90 tracking-wide">Loading...</p>
+          <p className="text-xl md:text-4xl font-semibold opacity-90 tracking-wide">
+            Loading...
+          </p>
         </div>
       ) : (
         <>
@@ -120,28 +110,88 @@ export function MainApp() {
                     if (res.extent) mapView.goTo(res.extent);
                   });
                 }
-              } else {
-                console.warn("Map not ready yet!");
               }
             }}
           />
 
           <div className="flex flex-1 overflow-hidden mt-0">
-            {/* Sidebar */}
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            {/* Sidebar (لسه شغال بالـ state) */}
+            <Sidebar  />
 
             {/* Page Content */}
             <div className="flex-1 p-4 lg:p-10 overflow-y-auto">
-              {renderContent()}
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" />} />
 
-              <div className="mt-10 bg-[#0a1320] rounded-xl h-[470px] border border-gray-800 overflow-hidden relative">
-                <MapViewComponent setChartData={setChartData} setView={setMapView} setLayer={setMapLayer} />
-              </div>
+                <Route
+                  path="/dashboard"
+                  element={<DashboardContent stats={stats} />}
+                />
+
+                <Route
+                  path="/charts"
+                  element={
+                    <ChartsContent
+                      stats={stats}
+                      mapView={mapView}
+                      mapLayer={mapLayer}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/development-projects"
+                  element={
+                    <DevelopmentProjectsPage
+                      mapView={mapView}
+                      mapLayer={mapLayer}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/nationwide-charts"
+                  element={<NationwideCharts chartData={chartData} />}
+                />
+
+                <Route
+                  path="/projects"
+                  element={
+                    <ProjectsList
+                      projects={projects}
+                      setSelectedProject={setSelectedProject}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/map2"
+                  element={
+                    <Map2
+                    />
+                  }
+                />
+              </Routes>
+
+              {/* الخريطة ثابتة */}
+             {location.pathname !== "/map2" && (
+  <div className="mt-10 bg-[#0a1320] rounded-xl h-[470px] border border-gray-800 overflow-hidden relative">
+    <MapViewComponent
+      setChartData={setChartData}
+      setView={setMapView}
+      setLayer={setMapLayer}
+    />
+  </div>
+)}
+
             </div>
 
             {/* Popup */}
             {selectedProject && (
-              <ProjectPopup project={selectedProject} onClose={() => setSelectedProject(null)} />
+              <ProjectPopup
+                project={selectedProject}
+                onClose={() => setSelectedProject(null)}
+              />
             )}
           </div>
         </>
