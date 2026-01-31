@@ -50,7 +50,7 @@ export default function SaudiMap() {
   center: [-98, 39], 
   // center: [45, 23], 
   zoom: 4,         
-  ui: { components: [] },
+  ui: { components: []},
 });
 
 
@@ -58,8 +58,11 @@ export default function SaudiMap() {
   }, []);
 
   return (
+    <>
+          <h1 className="text-2xl font-bold mb-6">This is Map 2</h1>
     <div className="w-full h-[600px] rounded-xl overflow-hidden border border-gray-300 bg-white">
-      <div ref={mapRef} className="w-full h-full" />
+      <div ref={mapRef} className="w-full h-full " />
     </div>
+    </>
   );
 }
